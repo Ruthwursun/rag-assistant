@@ -1,0 +1,17 @@
+[
+  {
+    "id": "1",
+    "title": "Refund Policy",
+    "content": "Customers can request a full refund within 30 days of purchase if the item is unused."
+  },
+  {
+    "id": "2",
+    "title": "Shipping Policy",
+    "content": "Orders are delivered within 5 to 7 business days."
+  },
+  {
+    "id": "3",
+    "title": "Customer Support",
+    "content": "We provide 24/7 email and chat support."
+  }
+]
