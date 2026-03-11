@@ -7,14 +7,20 @@ import { search } from "./utils/search.js";
 dotenv.config();
 
 const app = express();
+
 app.use(cors({
   origin: "https://rag-assistant-beta.vercel.app"
 }));
+
 app.use(express.json());
 
 const openrouter = new OpenAI({
   apiKey: process.env.OPENROUTER_API_KEY,
   baseURL: "https://openrouter.ai/api/v1",
+});
+
+app.get("/", (req, res) => {
+  res.send("Backend is running");
 });
 
 app.post("/chat", async (req, res) => {
@@ -27,9 +33,9 @@ app.post("/chat", async (req, res) => {
 
     const results = await search(message);
 
-    const context = results.map((r, index) =>
-      `${index + 1}. ${r.title}: ${r.content}`
-    ).join("\n\n");
+    const context = results
+      .map((r, index) => `${index + 1}. ${r.title}: ${r.content}`)
+      .join("\n\n");
 
     const completion = await openrouter.chat.completions.create({
       model: "stepfun/step-3.5-flash:free",
@@ -49,15 +55,15 @@ app.post("/chat", async (req, res) => {
 
     const reply = completion.choices[0].message.content;
 
-  res.json({
-    reply,
-    retrievedChunks: results.length,
-    sources: results.map((r) => r.title)
-});
+    res.json({
+      reply,
+      retrievedChunks: results.length,
+      sources: results.map((r) => r.title)
+    });
   } catch (error) {
     console.error("Server error:", error);
     res.status(500).json({
-      error: "Something went wrong while generating the response."
+      error: error?.message || "Something went wrong while generating the response."
     });
   }
 });
