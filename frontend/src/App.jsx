@@ -29,7 +29,12 @@ export default function App() {
 
       const data = await res.json();
 
-      const botMsg = { role: "assistant", text: data.answer };
+      // const botMsg = { role: "assistant", text: data.reply }; 
+      const botMsg = {
+              role: "assistant",
+              text: data.reply || data.error || "No reply received from backend.",
+              sources: data.sources || []
+                  };
       setMessages((prev) => [...prev, botMsg]);
     } catch {
       setMessages((prev) => [
@@ -69,6 +74,16 @@ export default function App() {
                   }`}
                 >
                   {msg.text}
+                  {msg.role === "assistant" && msg.sources?.length > 0 && (
+                 <div className="mt-3 text-xs text-gray-300">
+                <p className="font-semibold mb-1">Sources:</p>
+                <ul className="list-disc ml-4 space-y-1">
+                   {msg.sources.map((source, i) => (
+                  <li key={i}>{source}</li>
+                  ))}
+               </ul>
+               </div>
+              )}
                 </div>
               </motion.div>
             ))}

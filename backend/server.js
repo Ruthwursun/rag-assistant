@@ -10,44 +10,56 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
+const openrouter = new OpenAI({
+  apiKey: process.env.OPENROUTER_API_KEY,
+  baseURL: "https://openrouter.ai/api/v1",
 });
 
 app.post("/chat", async (req, res) => {
   try {
     const { message } = req.body;
 
-    // Retrieve top 3 relevant chunks
+    if (!message || !message.trim()) {
+      return res.status(400).json({ error: "Message is required" });
+    }
+
     const results = await search(message);
 
-    const context = results.map(r => r.content).join("\n\n");
+    const context = results.map((r, index) =>
+      `${index + 1}. ${r.title}: ${r.content}`
+    ).join("\n\n");
 
-    // Send to OpenAI
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+    const completion = await openrouter.chat.completions.create({
+      model: "stepfun/step-3.5-flash:free",
       messages: [
         {
           role: "system",
-          content: "Answer ONLY using the provided context."
+          content:
+            "You are a helpful AI assistant. Answer only using the provided context. If the answer is not available in the context, say you do not have enough information."
         },
         {
           role: "user",
-          content: `Context:\n${context}\n\nQuestion:\n${message}`
+          content: `CONTEXT:\n${context}\n\nQUESTION:\n${message}`
         }
-      ]
+      ],
+      temperature: 0.2,
     });
 
-    res.json({
-      answer: completion.choices[0].message.content
-    });
+    const reply = completion.choices[0].message.content;
 
+  res.json({
+    reply,
+    retrievedChunks: results.length,
+    sources: results.map((r) => r.title)
+});
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Server error" });
+    console.error("Server error:", error);
+    res.status(500).json({
+      error: "Something went wrong while generating the response."
+    });
   }
 });
 
 app.listen(5000, () => {
-  console.log("Server running on port 5000");
+  console.log("Server running on http://localhost:5000");
 });

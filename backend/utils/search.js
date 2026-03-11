@@ -1,33 +1,31 @@
 import fs from "fs";
-import cosineSimilarity from "compute-cosine-similarity";
-import OpenAI from "openai";
-import dotenv from "dotenv";
 
-dotenv.config();
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
-
-// Load vector store
-const vectorStore = JSON.parse(
-  fs.readFileSync("./data/vector_store.json", "utf-8")
+const docs = JSON.parse(
+  fs.readFileSync("./data/docs.json", "utf-8")
 );
 
 export async function search(query) {
-  const response = await openai.embeddings.create({
-    model: "text-embedding-3-small",
-    input: query
+  const lowerQuery = query.toLowerCase();
+
+  const scored = docs.map((doc) => {
+    let score = 0;
+
+    if (doc.title.toLowerCase().includes(lowerQuery)) score += 2;
+    if (doc.content.toLowerCase().includes(lowerQuery)) score += 3;
+
+    const queryWords = lowerQuery.split(" ");
+    for (const word of queryWords) {
+      if (doc.content.toLowerCase().includes(word)) score += 1;
+      if (doc.title.toLowerCase().includes(word)) score += 1;
+    }
+
+    return {
+      ...doc,
+      score
+    };
   });
 
-  const queryVector = response.data[0].embedding;
+  scored.sort((a, b) => b.score - a.score);
 
-  const results = vectorStore.map(item => ({
-    ...item,
-    score: cosineSimilarity(queryVector, item.vector)
-  }));
-
-  results.sort((a, b) => b.score - a.score);
-
-  return results.slice(0, 3);
+  return scored.slice(0, 3);
 }
