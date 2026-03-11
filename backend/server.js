@@ -7,7 +7,9 @@ import { search } from "./utils/search.js";
 dotenv.config();
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: "https://rag-assistant-beta.vercel.app/"
+}));
 app.use(express.json());
 
 const openrouter = new OpenAI({
