@@ -21,7 +21,7 @@ export default function App() {
     setLoading(true);
 
     try {
-      const res = await fetch("https://rag-assistant-gm9x.onrender.com", {
+      const res = await fetch("https://rag-assistant-gm9x.onrender.com/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: userMsg.text }),
