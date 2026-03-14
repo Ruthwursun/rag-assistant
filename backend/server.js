@@ -43,7 +43,7 @@ app.post("/chat", async (req, res) => {
         {
           role: "system",
           content:
-            "You are a helpful AI assistant. Answer only using the provided context. If the answer is not available in the context, Give your general opinion"
+            "You are a helpful AI assistant. Answer using the provided context. If the answer is not available in the context, Give your general opinion"
         },
         {
           role: "user",
